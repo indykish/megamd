@@ -62,15 +62,15 @@ var updateStatusInScylla = action.Action{
 			mach = ctx.Previous.(machine.Machine)
 		} else {
 			mach = machine.Machine{
-				Id:         args.box.Id,
-				AccountsId: args.box.AccountsId,
-				CartonId:   args.box.CartonId,
-				Level:      args.box.Level,
-				Name:       args.box.GetFullName(),
-				Status:     args.machineStatus,
-				Image:      args.imageId,
-				Region:     args.box.Region,
-				VMId:       args.box.VMId,
+				Id:           args.box.Id,
+				AccountsId:   args.box.AccountsId,
+				CartonId:     args.box.CartonId,
+				Level:        args.box.Level,
+				Name:         args.box.GetFullName(),
+				Status:       args.machineStatus,
+				Image:        args.imageId,
+				Region:       args.box.Region,
+				VMId:         args.box.VMId,
 				VCPUThrottle: args.provisioner.vcpuThrottle,
 			}
 		}
@@ -125,8 +125,6 @@ var createMachine = action.Action{
 	},
 }
 
-
-
 var getVmHostIpPort = action.Action{
 	Name: "gethost-port",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
@@ -137,7 +135,7 @@ var getVmHostIpPort = action.Action{
 			writer = ioutil.Discard
 		}
 		err := mach.VmHostIpPort(&machine.CreateArgs{
-    	Provisioner: args.provisioner,
+			Provisioner: args.provisioner,
 		})
 		if err != nil {
 			return nil, err
@@ -150,7 +148,6 @@ var getVmHostIpPort = action.Action{
 
 	},
 }
-
 
 var updateVnchostInScylla = action.Action{
 	Name: "updateVnchost",
@@ -356,7 +353,6 @@ var addNewRoute = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-
 
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("adding route to machine (%s, %s)", mach.Name, args.box.PublicIp)))
 		err = r.SetCName(mach.Name, args.box.PublicIp)

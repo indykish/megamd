@@ -30,7 +30,6 @@ import (
 	"github.com/megamsys/vertice/carton/bind"
 	"github.com/megamsys/vertice/repository"
 	"gopkg.in/yaml.v2"
-
 )
 
 const (

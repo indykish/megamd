@@ -167,7 +167,6 @@ func (s StateupProcess) Process(ca Cartons) error {
 	return nil
 }
 
-
 // DiskSaveProcs represents a command for delete cartons.
 type DiskSaveProcess struct {
 	Name string

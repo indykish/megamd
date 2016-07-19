@@ -70,7 +70,7 @@ func (s *Server) appendHTTPDService(c *httpd.Config) {
 }
 
 func (s *Server) appendDockerService(c *meta.Config, d *docker.Config) {
-         e := *d
+	e := *d
 	if !e.Docker.Enabled {
 		log.Warn("skip dockerd service.")
 		return

@@ -75,7 +75,7 @@ func Stop(cy *LifecycleOpts) error {
 			return err
 		}
 	} else {
-	   fmt.Printf("start (%s, %s, %s) Unsuccessfull because of lifecycle not allowed\n", cy.B.GetFullName(), cy.B.Status.String(), time.Since(cy.start))
+		fmt.Printf("start (%s, %s, %s) Unsuccessfull because of lifecycle not allowed\n", cy.B.GetFullName(), cy.B.Status.String(), time.Since(cy.start))
 	}
 	fmt.Fprintf(cy.writer, "    stop (%s, %s, %s) OK\n", cy.B.GetFullName(), cy.B.Status.String(), time.Since(cy.start))
 	return nil

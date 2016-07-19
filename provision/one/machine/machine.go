@@ -37,20 +37,20 @@ type OneProvisioner interface {
 }
 
 type Machine struct {
-	Name       string
-	Region     string
-	Id         string
-	CartonId   string
-	AccountsId string
-	Level      provision.BoxLevel
-	SSH        provision.BoxSSH
-	Image      string
+	Name         string
+	Region       string
+	Id           string
+	CartonId     string
+	AccountsId   string
+	Level        provision.BoxLevel
+	SSH          provision.BoxSSH
+	Image        string
 	VCPUThrottle string
-	VMId        string
+	VMId         string
 	VNCHost      string
 	VNCPort      string
-	Routable   bool
-	Status     utils.Status
+	Routable     bool
+	Status       utils.Status
 }
 
 type CreateArgs struct {
@@ -61,37 +61,36 @@ type CreateArgs struct {
 	Provisioner OneProvisioner
 }
 
-
 func (m *Machine) Create(args *CreateArgs) error {
 
- opts := compute.VirtualMachine{
+	opts := compute.VirtualMachine{
 		Name:   m.Name,
 		Image:  m.Image,
 		Region: args.Box.Region,
-		Cpu: strconv.FormatInt(int64(args.Box.GetCpushare()), 10),
+		Cpu:    strconv.FormatInt(int64(args.Box.GetCpushare()), 10),
 		Memory: strconv.FormatInt(int64(args.Box.GetMemory()), 10),
 		HDD:    strconv.FormatInt(int64(args.Box.GetHDD()), 10),
 		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId,
-		compute.ASSEMBLIES_ID: args.Box.CartonsId},
+			compute.ASSEMBLIES_ID: args.Box.CartonsId},
 		Vnets: args.Box.Vnets,
-		}
+	}
 
 	//m.addEnvsToContext(m.BoxEnvs, &vm)
- _,	_, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle)
+	_, _, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle)
 	if err != nil {
 		return err
 	}
 	m.VMId = vmid
 
 	var id = make(map[string][]string)
-		vm := []string{}
-		vm = []string{m.VMId}
-	 id[carton.VMID] = vm
-		if asm, err := carton.NewAmbly(m.CartonId); err != nil {
-			return err
-		} else if err = asm.NukeAndSetOutputs(id); err != nil {
-			return err
-		}
+	vm := []string{}
+	vm = []string{m.VMId}
+	id[carton.VMID] = vm
+	if asm, err := carton.NewAmbly(m.CartonId); err != nil {
+		return err
+	} else if err = asm.NukeAndSetOutputs(id); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -99,19 +98,19 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 
 	//time.Sleep(time.Second * 25)
 
-  var Wait int
-    ch := make(chan int)
-		for i := 0; i < 100; i++ {
-		    go player(ch)
-		}
-    ch <- Wait
-    time.Sleep(25 * time.Second)
-    <-ch
+	var Wait int
+	ch := make(chan int)
+	for i := 0; i < 100; i++ {
+		go player(ch)
+	}
+	ch <- Wait
+	time.Sleep(25 * time.Second)
+	<-ch
 
-   opts := virtualmachine.Vnc {
-		VmId:   m.VMId,
-			}
- 	vnchost, vncport, err := args.Provisioner.Cluster().GetIpPort(opts,m.Region)
+	opts := virtualmachine.Vnc{
+		VmId: m.VMId,
+	}
+	vnchost, vncport, err := args.Provisioner.Cluster().GetIpPort(opts, m.Region)
 	if err != nil {
 		return err
 	}
@@ -121,46 +120,46 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 }
 
 func player(ch chan int) {
-    for {
-        wait := <-ch
-        wait++
-        time.Sleep(150 * time.Millisecond)
-        ch <- wait
-    }
+	for {
+		wait := <-ch
+		wait++
+		time.Sleep(150 * time.Millisecond)
+		ch <- wait
+	}
 }
 
 func (m *Machine) UpdateVncHost() error {
 
 	var vnchost = make(map[string][]string)
-		host := []string{}
-		host = []string{m.VNCHost}
-	 vnchost[carton.VNCHOST] = host
-		if asm, err := carton.NewAmbly(m.CartonId); err != nil {
-			return err
-		} else if err = asm.NukeAndSetOutputs(vnchost); err != nil {
-			return err
-		}
-		return nil
+	host := []string{}
+	host = []string{m.VNCHost}
+	vnchost[carton.VNCHOST] = host
+	if asm, err := carton.NewAmbly(m.CartonId); err != nil {
+		return err
+	} else if err = asm.NukeAndSetOutputs(vnchost); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *Machine) UpdateVncPort() error {
 
 	var vncport = make(map[string][]string)
-		port := []string{}
-		port = []string{m.VNCPort}
-	 vncport[carton.VNCPORT] = port
-		if asm, err := carton.NewAmbly(m.CartonId); err != nil {
-			return err
-		} else if err = asm.NukeAndSetOutputs(vncport); err != nil {
-			return err
-		}
-		return nil
+	port := []string{}
+	port = []string{m.VNCPort}
+	vncport[carton.VNCPORT] = port
+	if asm, err := carton.NewAmbly(m.CartonId); err != nil {
+		return err
+	} else if err = asm.NukeAndSetOutputs(vncport); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *Machine) Remove(p OneProvisioner) error {
 	log.Debugf("  removing machine in one (%s)", m.Name)
 	opts := compute.VirtualMachine{
-		Name: m.Name,
+		Name:   m.Name,
 		Region: m.Region,
 	}
 
@@ -205,9 +204,9 @@ func (m *Machine) LifecycleOps(p OneProvisioner, action string) error {
 	log.Debugf("  %s machine in one (%s)", action, m.Name)
 	id, _ := strconv.Atoi(m.VMId)
 	opts := compute.VirtualMachine{
-		Name: m.Name,
+		Name:   m.Name,
 		Region: m.Region,
-		VMId: id,
+		VMId:   id,
 	}
 	err := p.Cluster().VM(opts, action)
 	if err != nil {
@@ -312,7 +311,7 @@ func (m *Machine) addEnvsToContext(envs string, cfg *compute.VirtualMachine) {
 func (m *Machine) CreateDiskSnap(p OneProvisioner) error {
 	log.Debugf("  creating snap machine in one (%s)", m.Name)
 	opts := compute.VirtualMachine{
-		Name: m.Name,
+		Name:   m.Name,
 		Region: m.Region,
 	}
 
@@ -321,13 +320,13 @@ func (m *Machine) CreateDiskSnap(p OneProvisioner) error {
 	//time.Sleep(time.Second * 25)
 
 	var Wait int
-		ch := make(chan int)
-		for i := 0; i < 100; i++ {
-				go player(ch)
-		}
-		ch <- Wait
-		time.Sleep(45 * time.Second)
-		<-ch
+	ch := make(chan int)
+	for i := 0; i < 100; i++ {
+		go player(ch)
+	}
+	ch <- Wait
+	time.Sleep(45 * time.Second)
+	<-ch
 
 	if err != nil {
 		return err

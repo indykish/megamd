@@ -54,10 +54,10 @@ type Region struct {
 }
 
 type Bridge struct {
-	ClusterId    string `json:"cluster_id" toml:"cluster_id"`
-	Name    string `json:"name" toml:"name"`
-	Network string `json:"network" toml:"network"`
-	Gateway string `json:"gateway" toml:"gateway"`
+	ClusterId string `json:"cluster_id" toml:"cluster_id"`
+	Name      string `json:"name" toml:"name"`
+	Network   string `json:"network" toml:"network"`
+	Gateway   string `json:"gateway" toml:"gateway"`
 }
 
 func (p *dockerProvisioner) Cluster() *cluster.Cluster {

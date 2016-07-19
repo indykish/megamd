@@ -29,7 +29,6 @@ import (
 	"gopkg.in/yaml.v2"
 	"strings"
 	"time"
-
 )
 
 const (
@@ -115,8 +114,8 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 		VMId:         a.vmId(),
 		//VncHost:      a.vncHost(),
 		//VncPort:      a.vncPort(),
-		Boxes:        &b,
-		Status:       utils.Status(a.Status),
+		Boxes:  &b,
+		Status: utils.Status(a.Status),
 	}
 	return c, nil
 }
@@ -346,11 +345,11 @@ func (a *Assembly) region() string {
 
 func (a *Assembly) vnets() map[string]string {
 	v := make(map[string]string)
-	v[utils.IPV4PUB]        = "true"
-	v[utils.IPV4PRI]        = a.ipv4Pri()
-	v[utils.IPV6PRI]				= a.ipv6Pub()
-	v[utils.IPV6PUB]        = a.ipv6Pri()
-  return v
+	v[utils.IPV4PUB] = "true"
+	v[utils.IPV4PRI] = a.ipv4Pri()
+	v[utils.IPV6PRI] = a.ipv6Pub()
+	v[utils.IPV6PUB] = a.ipv6Pri()
+	return v
 }
 
 func (a *Assembly) ipv4Pri() string {

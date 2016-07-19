@@ -60,9 +60,9 @@ func NewConfig() *Config {
 	rg := make([]docker.Region, 2)
 	c := docker.Bridge{
 		ClusterId: DefaultNetType,
-		Name:    DefaultBridgeName,
-		Network: cluster.BRIDGE_NETWORK,
-		Gateway: cluster.BRIDGE_GATEWAY,
+		Name:      DefaultBridgeName,
+		Network:   cluster.BRIDGE_NETWORK,
+		Gateway:   cluster.BRIDGE_GATEWAY,
 	}
 	fmt.Println(c)
 	r := docker.Region{

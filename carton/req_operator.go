@@ -28,12 +28,12 @@ type ReqOperator struct {
 
 // NewReqOperator returns a new instance of ReqOperator
 // for the operatable id (Assemblies)
-func NewReqOperator(id ,cat string) *ReqOperator {
+func NewReqOperator(id, cat string) *ReqOperator {
 	return &ReqOperator{Id: id, Category: cat}
 }
 
 func (p *ReqOperator) Accept(r *MegdProcessor) error {
-	c, err := p.Get(p.Id,p.Category)
+	c, err := p.Get(p.Id, p.Category)
 	if err != nil {
 		return err
 	}
@@ -42,8 +42,8 @@ func (p *ReqOperator) Accept(r *MegdProcessor) error {
 	return md.Process(c)
 }
 
-func (p *ReqOperator) Get(cat_id,cat string) (Cartons, error) {
-  if cat == SNAPSHOT {
+func (p *ReqOperator) Get(cat_id, cat string) (Cartons, error) {
+	if cat == SNAPSHOT {
 		a, err := GetSnap(cat_id)
 		if err != nil {
 			return nil, err
@@ -65,7 +65,6 @@ func (p *ReqOperator) Get(cat_id,cat string) (Cartons, error) {
 		return c, nil
 	}
 }
-
 
 // MegdProcessor represents a single operation in vertice.
 type MegdProcessor interface {

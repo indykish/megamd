@@ -5,11 +5,11 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	ldb "github.com/megamsys/libgo/db"
-		"github.com/megamsys/vertice/meta"
+	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/provision"
-	"strings"
 	"gopkg.in/yaml.v2"
 	"io"
+	"strings"
 	"time"
 )
 
@@ -19,13 +19,13 @@ type DiskSaveOpts struct {
 
 //The grand elephant for megam cloud platform.
 type Snaps struct {
-	Id          string   `json:"snap_id" cql:"snap_id"`
-	OrgId       string   `json:"org_id" cql:"org_id"`
-	AccountId   string   `json:"account_id" cql:"account_id"`
-	Name        string   `json:"name" cql:"name"`
-	AssemblyId  string   `json:"asm_id" cql:"asm_id"`
-	JsonClaz    string   `json:"json_claz" cql:"json_claz"`
-	CreatedAt   string   `json:"created_at" cql:"created_at"`
+	Id         string `json:"snap_id" cql:"snap_id"`
+	OrgId      string `json:"org_id" cql:"org_id"`
+	AccountId  string `json:"account_id" cql:"account_id"`
+	Name       string `json:"name" cql:"name"`
+	AssemblyId string `json:"asm_id" cql:"asm_id"`
+	JsonClaz   string `json:"json_claz" cql:"json_claz"`
+	CreatedAt  string `json:"created_at" cql:"created_at"`
 }
 
 func (a *Snaps) String() string {
@@ -83,14 +83,14 @@ func GetSnap(id string) (*Snaps, error) {
 //make cartons from snaps.
 func (a *Snaps) MkCartons() (Cartons, error) {
 	newCs := make(Cartons, 0, 1)
-		if len(strings.TrimSpace(a.AssemblyId)) > 1 {
-			if ca, err := mkCarton(a.Id, a.AssemblyId); err != nil {
-				return nil, err
-			} else {
-				ca.toBox()                //on success, make a carton2box if BoxLevel is BoxZero
-				newCs = append(newCs, ca) //on success append carton
-			}
+	if len(strings.TrimSpace(a.AssemblyId)) > 1 {
+		if ca, err := mkCarton(a.Id, a.AssemblyId); err != nil {
+			return nil, err
+		} else {
+			ca.toBox()                //on success, make a carton2box if BoxLevel is BoxZero
+			newCs = append(newCs, ca) //on success append carton
 		}
+	}
 	log.Debugf("Cartons %v", newCs)
 	return newCs, nil
 }

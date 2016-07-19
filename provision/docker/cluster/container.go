@@ -98,7 +98,7 @@ func (c *Cluster) GetIP() (net.IP, string, string, error) {
 		gateway string
 		ind     uint
 		bridge  string
-	 bridges []Bridge
+		bridges []Bridge
 	)
 	nodlist, _ := c.Nodes()
 	br := make(map[string]string)
@@ -109,10 +109,10 @@ func (c *Cluster) GetIP() (net.IP, string, string, error) {
 					br[i] = j
 				}
 				br1 := Bridge{
-					ClusterId:    br[BRIDGE_CLUSTER],
-					Name:    br[BRIDGE_NAME],
-					Network: br[BRIDGE_NETWORK],
-					Gateway: br[BRIDGE_GATEWAY],
+					ClusterId: br[BRIDGE_CLUSTER],
+					Name:      br[BRIDGE_NAME],
+					Network:   br[BRIDGE_NETWORK],
+					Gateway:   br[BRIDGE_GATEWAY],
 				}
 				bridges = append(bridges, br1)
 			}
@@ -164,7 +164,7 @@ func (c *Cluster) ListContainers(opts docker.ListContainersOptions) ([]docker.AP
 	errs := make(chan error, len(nodes))
 	for _, n := range nodes {
 		if n.Metadata[DOCKER_ZONE] == c.Region {
-			addr =n.Address
+			addr = n.Address
 		}
 		wg.Add(1)
 		client, _ := c.getNodeByAddr(addr)

@@ -3,10 +3,9 @@ package cluster
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/megamsys/vertice/carton"
 	"net/http"
-		"github.com/megamsys/vertice/carton"
-		//	"github.com/megamsys/vertice/provision"
-
+	//	"github.com/megamsys/vertice/provision"
 )
 
 const (

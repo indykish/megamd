@@ -457,7 +457,7 @@ func (p *oneProvisioner) MetricEnvs(start int64, end int64, w io.Writer) ([]inte
 	res, err := p.Cluster().Showback(start, end)
 	if err != nil {
 
-		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("--- pull metrics for the duration error(%d, %d)-->%s", start, end)))
+		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("--- pull metrics for the duration error(%d, %d)-->%s", start, end, err)))
 		return nil, err
 	}
 
