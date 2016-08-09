@@ -89,6 +89,7 @@ var updateStatusInScylla = action.Action{
 
 var createMachine = action.Action{
 	Name: "create-machine",
+
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
@@ -107,7 +108,6 @@ var createMachine = action.Action{
 		if err != nil {
 			return nil, err
 		}
-		mach.Status = constants.StatusLaunched
 
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" create machine for box (%s, image:%s)/%s OK", args.box.GetFullName(), args.imageId, args.box.Compute)))
 		return mach, nil
@@ -140,7 +140,7 @@ var getVmHostIpPort = action.Action{
 		if err != nil {
 			return nil, err
 		}
-		mach.Status = constants.StatusLaunched
+		mach.Status = constants.StatusVncHostUpdating
 
 		return mach, nil
 	},
@@ -157,7 +157,7 @@ var updateVnchostInScylla = action.Action{
 		if err != nil {
 			return nil, err
 		}
-
+		mach.Status = constants.StatusVncHostUpdated
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -174,6 +174,7 @@ var updateVncportInScylla = action.Action{
 		if err != nil {
 			return nil, err
 		}
+		mach.Status = constants.StatusLaunched
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -328,8 +329,15 @@ var changeStateofMachine = action.Action{
 			Level:    args.box.Level,
 			Name:     args.box.GetFullName(),
 		}
+		mach.SetStatus(constants.StatusStateupping)
 		mach.ChangeState(args.machineStatus)
-		mach.Status = args.machineStatus
+
+		if args.box.PublicIp != "" {
+			mach.Status = constants.StatusNetworkCreating
+
+		} else {
+			mach.Status = constants.StatusNetworkSkipped
+		}
 
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  change state of machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
 		return mach, nil
@@ -360,9 +368,8 @@ var addNewRoute = action.Action{
 			return mach, err
 		}
 		mach.SetRoutable(args.box.PublicIp)
-
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("adding route to machine (%s, %s)OK", mach.Name, args.box.PublicIp)))
-
+		mach.Status = constants.StatusNetworkCreated
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -507,4 +514,13 @@ var diskSaveAsImage = action.Action{
 	},
 	OnError:   rollbackNotice,
 	MinParams: 1,
+}
+
+var setFinalState = action.Action{
+	Name: "set-final-state",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		mach.Status = constants.StatusStateupped
+		return mach, nil
+	},
 }

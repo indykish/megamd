@@ -18,7 +18,6 @@ package carton
 
 import (
 	"bytes"
-
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/vertice/provision"

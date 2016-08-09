@@ -226,9 +226,10 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 	actions := []*action.Action{
 		&updateStatusInScylla,
 		&createMachine,
-		&updateStatusInScylla,
 		&getVmHostIpPort,
+		&updateStatusInScylla,
 		&updateVnchostInScylla,
+		&updateStatusInScylla,
 		&updateVncportInScylla,
 		&updateStatusInScylla,
 		&deductCons,
@@ -327,11 +328,17 @@ func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto util
 		provisioner:   p,
 	}
 
-	actions := []*action.Action{
-		&changeStateofMachine,
-		&addNewRoute,
+	stateAction := make([]*action.Action, 0, 4)
+	stateAction = append(stateAction, &changeStateofMachine)
+	if args.box.PublicIp != "" {
+		stateAction = append(stateAction, &updateStatusInScylla, &addNewRoute, &updateStatusInScylla)
+	} else {
+		stateAction = append(stateAction, &updateStatusInScylla)
 	}
 
+	stateAction = append(stateAction, &setFinalState, &updateStatusInScylla)
+
+	actions := stateAction
 	pipeline := action.NewPipeline(actions...)
 
 	err := pipeline.Execute(args)

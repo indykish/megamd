@@ -103,6 +103,7 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 		CartonsId:    aies, //assemblies id
 		Name:         a.Name,
 		Tosca:        a.Tosca,
+		AccountsId:   a.AccountId,
 		ImageVersion: a.imageVersion(),
 		DomainName:   a.domain(),
 		Compute:      a.newCompute(),
@@ -112,10 +113,8 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 		Region:       a.region(),
 		Vnets:        a.vnets(),
 		VMId:         a.vmId(),
-		//VncHost:      a.vncHost(),
-		//VncPort:      a.vncPort(),
-		Boxes:  &b,
-		Status: utils.Status(a.Status),
+		Boxes:        &b,
+		Status:       utils.Status(a.Status),
 	}
 	return c, nil
 }
@@ -133,6 +132,7 @@ func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
 				b.CartonId = a.Id
 				b.CartonsId = aies
 				b.CartonName = a.Name
+				b.AccountsId = a.AccountId
 				if len(strings.TrimSpace(b.Provider)) <= 0 {
 					b.Provider = a.provider()
 				}
@@ -237,6 +237,7 @@ func (a *Ambly) trigger_event(status utils.Status) error {
 				Timestamp:   time.Now().Local(),
 			},
 		})
+
 	return newEvent.Write()
 }
 
@@ -345,11 +346,15 @@ func (a *Assembly) region() string {
 
 func (a *Assembly) vnets() map[string]string {
 	v := make(map[string]string)
-	v[utils.IPV4PUB] = "true"
+	v[utils.IPV4PUB] = a.ipv4Pub()
 	v[utils.IPV4PRI] = a.ipv4Pri()
-	v[utils.IPV6PRI] = a.ipv6Pub()
-	v[utils.IPV6PUB] = a.ipv6Pri()
+	v[utils.IPV6PUB] = a.ipv6Pub()
+	v[utils.IPV6PRI] = a.ipv6Pri()
 	return v
+}
+
+func (a *Assembly) ipv4Pub() string {
+	return a.Inputs.Match(utils.IPV4PUB)
 }
 
 func (a *Assembly) ipv4Pri() string {

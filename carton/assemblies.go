@@ -24,6 +24,10 @@ import (
 	"strings"
 )
 
+const (
+	ASSEMBLIESBUCKET = "assemblies"
+)
+
 //bunch Assemblys
 type Cartons []*Carton
 
@@ -53,7 +57,7 @@ func Get(id string) (*Assemblies, error) {
 	a := &Assemblies{}
 	//ops := vdb.ScyllaOptions("assemblies", []string{"Id"}, []string{"org_id"}, map[string]string{"Id": id, "org_id":"ORG123"})
 	ops := ldb.Options{
-		TableName:   "assemblies",
+		TableName:   ASSEMBLIESBUCKET,
 		Pks:         []string{"Id"},
 		Ccms:        []string{},
 		Hosts:       meta.MC.Scylla,
@@ -95,7 +99,7 @@ func (a *Assemblies) Delete(asmid string, removedAssemblys []string) {
 	}
 	if reflect.DeepEqual(existingAssemblys, removedAssemblys) {
 		ops := ldb.Options{
-			TableName:   "assemblies",
+			TableName:   ASSEMBLIESBUCKET,
 			Pks:         []string{"id"},
 			Ccms:        []string{"org_id"},
 			Hosts:       meta.MC.Scylla,

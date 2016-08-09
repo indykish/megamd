@@ -6,12 +6,10 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/opennebula-go/api"
 	"github.com/megamsys/opennebula-go/compute"
 	"github.com/megamsys/opennebula-go/virtualmachine"
 	"net"
 	"net/url"
-	"strconv"
 	"strings"
 )
 
@@ -25,7 +23,7 @@ const (
 
 var ErrConnRefused = errors.New("connection refused")
 
-func (c *Cluster) CreateVM(opts compute.VirtualMachine, t string) (string, string, string, error) {
+func (c *Cluster) CreateVM(opts compute.VirtualMachine) (string, string, string, error) {
 	var (
 		addr    string
 		machine string
@@ -37,20 +35,10 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine, t string) (string, strin
 
 		nodlist, err := c.Nodes()
 
-		for _, v := range nodlist {
-			if v.Metadata[api.ONEZONE] == opts.Region {
-				addr = v.Address
-				opts.Vnets, opts.ClusterId = c.getVnets(v, opts.Vnets)
-				if v.Metadata[api.VCPU_PERCENTAGE] != "" {
-					opts.Cpu = cpuThrottle(v.Metadata[api.VCPU_PERCENTAGE], opts.Cpu)
-				} else {
-					opts.Cpu = cpuThrottle(t, opts.Cpu)
-				}
-			}
-		}
-
-		if addr == "" {
+		if err != nil || len(nodlist) <= 0 {
 			return addr, machine, vmid, fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
+		} else {
+			addr = nodlist[0].Address
 		}
 
 		if err == nil {
@@ -108,11 +96,19 @@ func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string
 	return opts.Name, vmres, nil
 }
 
-func (c *Cluster) GetIpPort(opts virtualmachine.Vnc, region string) (string, string, error) {
+func (c *Cluster) GetIpPort(opts virtualmachine.Vnc) (string, string, error) {
 
-	addr, err := c.getRegion(region)
-	if err != nil {
-		return "", "", err
+	var (
+		addr    string
+		vnchost string
+		vncport string
+	)
+	nodlist, err := c.Nodes()
+
+	if err != nil || len(nodlist) <= 0 {
+		return vnchost, vncport, fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
+	} else {
+		addr = nodlist[0].Address
 	}
 
 	node, err := c.getNodeByAddr(addr)
@@ -123,8 +119,8 @@ func (c *Cluster) GetIpPort(opts virtualmachine.Vnc, region string) (string, str
 	opts.T = node.Client
 
 	res, err := opts.GetVm()
-	vnchost := res.GetHostIp()
-	vncport := res.GetPort()
+	vnchost = res.GetHostIp()
+	vncport = res.GetPort()
 
 	if err != nil {
 		return "", "", wrapErrorWithCmd(node, err, "createVM")
@@ -135,10 +131,15 @@ func (c *Cluster) GetIpPort(opts virtualmachine.Vnc, region string) (string, str
 
 // DestroyVM kills a vm, returning an error in case of failure.
 func (c *Cluster) DestroyVM(opts compute.VirtualMachine) error {
+	var (
+		addr string
+	)
+	nodlist, err := c.Nodes()
 
-	addr, err := c.getRegion(opts.Region)
-	if err != nil {
-		return err
+	if err != nil || len(nodlist) <= 0 {
+		return fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
+	} else {
+		addr = nodlist[0].Address
 	}
 
 	node, err := c.getNodeByAddr(addr)
@@ -167,10 +168,15 @@ func (c *Cluster) VM(opts compute.VirtualMachine, action string) error {
 	}
 }
 func (c *Cluster) StartVM(opts compute.VirtualMachine) error {
+	var (
+		addr string
+	)
+	nodlist, err := c.Nodes()
 
-	addr, err := c.getRegion(opts.Region)
-	if err != nil {
-		return err
+	if err != nil || len(nodlist) <= 0 {
+		return fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
+	} else {
+		addr = nodlist[0].Address
 	}
 
 	node, err := c.getNodeByAddr(addr)
@@ -187,10 +193,15 @@ func (c *Cluster) StartVM(opts compute.VirtualMachine) error {
 }
 
 func (c *Cluster) RestartVM(opts compute.VirtualMachine) error {
+	var (
+		addr string
+	)
+	nodlist, err := c.Nodes()
 
-	addr, err := c.getRegion(opts.Region)
-	if err != nil {
-		return err
+	if err != nil || len(nodlist) <= 0 {
+		return fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
+	} else {
+		addr = nodlist[0].Address
 	}
 
 	node, err := c.getNodeByAddr(addr)
@@ -207,10 +218,14 @@ func (c *Cluster) RestartVM(opts compute.VirtualMachine) error {
 }
 
 func (c *Cluster) StopVM(opts compute.VirtualMachine) error {
-
-	addr, err := c.getRegion(opts.Region)
-	if err != nil {
-		return err
+	var (
+		addr string
+	)
+	nodlist, err := c.Nodes()
+	if err != nil || len(nodlist) <= 0 {
+		return fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
+	} else {
+		addr = nodlist[0].Address
 	}
 
 	node, err := c.getNodeByAddr(addr)
@@ -230,55 +245,4 @@ func (c *Cluster) getNodeByAddr(addr string) (node, error) {
 	return c.getNode(func(s Storage) (Node, error) {
 		return s.RetrieveNode(addr)
 	})
-}
-
-func (c *Cluster) SnapVMDisk(opts compute.VirtualMachine) error {
-
-	addr, err := c.getRegion(opts.Region)
-	if err != nil {
-		return err
-	}
-
-	node, err := c.getNodeByAddr(addr)
-	if err != nil {
-		return err
-	}
-	opts.T = node.Client
-
-	_, err = opts.DiskSnap()
-	if err != nil {
-		return wrapError(node, err)
-	}
-	return nil
-}
-
-func cpuThrottle(vcpu, cpu string) string {
-	ThrottleFactor, _ := strconv.Atoi(vcpu)
-	cpuThrottleFactor := float64(ThrottleFactor)
-	ICpu, _ := strconv.Atoi(cpu)
-	throttle := float64(ICpu)
-	realCPU := throttle / cpuThrottleFactor
-	cpu = strconv.FormatFloat(realCPU, 'f', 6, 64) //ugly, compute has the info.
-	return cpu
-}
-
-func (c *Cluster) getRegion(region string) (string, error) {
-	var (
-		addr string
-	)
-	nodlist, err := c.Nodes()
-	if err != nil {
-		addr = ""
-	}
-	for _, v := range nodlist {
-		if v.Metadata[api.ONEZONE] == region {
-			addr = v.Address
-		}
-	}
-
-	if addr == "" {
-		return addr, fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
-	}
-
-	return addr, nil
 }
